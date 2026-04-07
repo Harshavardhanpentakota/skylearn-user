@@ -13,8 +13,6 @@ const methodLabel = (method: string) =>
 
 const formatIp = (ip: string) => {
   if (ip === "127.0.0.1" || ip === "::1") return "127.0.0.1 (Localhost)";
-  // Private LAN ranges: 192.168.x.x, 10.x.x.x, 172.16-31.x.x
-  if (/^192\.168\.|^10\.|^172\.(1[6-9]|2\d|3[01])\./.test(ip)) return `${ip} (Local Network)`;
   return ip;
 };
 
