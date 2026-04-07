@@ -2,13 +2,14 @@ import { LayoutDashboard, BookOpen, Award, Megaphone, UserCircle, X, LogOut } fr
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { useUnreadAnnouncementsCount } from "@/hooks/use-courses";
 
-const navItems = [
-  { to: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/courses", icon: BookOpen, label: "Courses" },
-  { to: "/certificates", icon: Award, label: "Certificates" },
-  { to: "/announcements", icon: Megaphone, label: "Announcements" },
-  { to: "/profile", icon: UserCircle, label: "Profile" },
+const baseNavItems = [
+  { to: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/courses",       icon: BookOpen,        label: "Courses" },
+  { to: "/certificates",  icon: Award,           label: "Certificates" },
+  { to: "/announcements", icon: Megaphone,       label: "Announcements", badge: true },
+  { to: "/profile",       icon: UserCircle,      label: "Profile" },
 ];
 
 interface AppSidebarProps {
@@ -17,8 +18,10 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ open, onClose }: AppSidebarProps) {
-  const { logout } = useAuth();
+  const { logout, token } = useAuth();
   const navigate = useNavigate();
+  const { data: unreadData } = useUnreadAnnouncementsCount(token);
+  const unreadCount = unreadData?.count ?? 0;
 
   const handleLogout = () => {
     logout();
@@ -29,7 +32,11 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
     <>
       {/* Mobile overlay */}
       {open && (
-        <div className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm md:hidden" onClick={onClose} />
+        <div
+          className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
       )}
 
       <aside
@@ -42,13 +49,17 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
           <span className="font-heading text-lg font-bold text-primary truncate opacity-100 md:opacity-0 md:group-hover/sidebar:opacity-100 transition-opacity duration-200">
             Cificap
           </span>
-          <button onClick={onClose} className="md:hidden text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onClose}
+            className="md:hidden text-muted-foreground hover:text-foreground p-1 rounded"
+            aria-label="Close menu"
+          >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
-          {navItems.map((item) => (
+          {baseNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -62,9 +73,21 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
                 )
               }
             >
-              <item.icon className="h-5 w-5 shrink-0" />
-              <span className="truncate opacity-100 md:opacity-0 md:group-hover/sidebar:opacity-100 transition-opacity duration-200">
+              <span className="relative shrink-0">
+                <item.icon className="h-5 w-5" />
+                {item.badge && unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground px-0.5">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </span>
+              <span className="truncate opacity-100 md:opacity-0 md:group-hover/sidebar:opacity-100 transition-opacity duration-200 flex items-center gap-2">
                 {item.label}
+                {item.badge && unreadCount > 0 && (
+                  <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground px-1 md:opacity-0 md:group-hover/sidebar:opacity-100 transition-opacity duration-200">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </span>
             </NavLink>
           ))}

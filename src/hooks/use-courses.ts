@@ -85,3 +85,62 @@ export const useMarkTopicComplete = (token: string | null) => {
     },
   });
 };
+
+// ── Announcement helpers ──────────────────────────────────────────────────────
+
+export const useUnreadAnnouncementsCount = (token: string | null) => {
+  return useQuery({
+    queryKey: ['unread-announcements'],
+    enabled: !!token,
+    refetchInterval: 60_000, // refresh every 60 s
+    queryFn: async (): Promise<{ count: number }> => {
+      const res = await fetch(`${API_BASE}/announcements/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return { count: 0 };
+      return res.json();
+    },
+  });
+};
+
+export const useMarkAnnouncementRead = (token: string | null) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (announcementId: string) => {
+      const res = await fetch(`${API_BASE}/announcements/${announcementId}/read`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to mark announcement as read');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-announcements'] });
+    },
+  });
+};
+
+// ── Suspicious login check ────────────────────────────────────────────────────
+
+export interface SuspiciousCheckResult {
+  isNewDevice: boolean;
+  ip?: string;
+  method?: string;
+  createdAt?: string;
+}
+
+export const useSuspiciousLoginCheck = (token: string | null) => {
+  return useQuery({
+    queryKey: ['suspicious-check'],
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<SuspiciousCheckResult> => {
+      const res = await fetch(`${API_BASE}/auth/suspicious-check`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return { isNewDevice: false };
+      return res.json();
+    },
+  });
+};

@@ -27,6 +27,9 @@ export interface Announcement {
   title: string;
   description: string;
   date: string;
+  targetRole?: 'all' | 'student' | 'admin';
+  isRead?: boolean;
+  createdAt?: string;
 }
 
 export interface Certificate {
