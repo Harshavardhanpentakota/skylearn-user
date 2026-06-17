@@ -32,10 +32,4 @@ export interface Announcement {
   createdAt?: string;
 }
 
-export interface Certificate {
-  id: string;
-  courseTitle: string;
-  completionDate: string;
-}
-
 

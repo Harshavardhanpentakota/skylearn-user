@@ -1,4 +1,4 @@
-import { LayoutDashboard, BookOpen, Award, Megaphone, UserCircle, X, LogOut } from "lucide-react";
+import { LayoutDashboard, BookOpen, Megaphone, UserCircle, X, LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
@@ -7,7 +7,6 @@ import { useUnreadAnnouncementsCount } from "@/hooks/use-courses";
 const baseNavItems = [
   { to: "/dashboard",     icon: LayoutDashboard, label: "Dashboard" },
   { to: "/courses",       icon: BookOpen,        label: "Courses" },
-  { to: "/certificates",  icon: Award,           label: "Certificates" },
   { to: "/announcements", icon: Megaphone,       label: "Announcements", badge: true },
   { to: "/profile",       icon: UserCircle,      label: "Profile" },
 ];

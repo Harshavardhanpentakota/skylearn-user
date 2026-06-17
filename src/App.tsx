@@ -13,7 +13,6 @@ import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
 import CourseDetails from "./pages/CourseDetails";
 import LessonPlayer from "./pages/LessonPlayer";
-import Certificates from "./pages/Certificates";
 import Announcements from "./pages/Announcements";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
@@ -39,7 +38,6 @@ const App = () => (
               <Route path="/courses"      element={<ProtectedRoute><Courses /></ProtectedRoute>} />
               <Route path="/courses/:id"  element={<ProtectedRoute><CourseDetails /></ProtectedRoute>} />
               <Route path="/lesson/:courseId/:topicId" element={<ProtectedRoute><LessonPlayer /></ProtectedRoute>} />
-              <Route path="/certificates" element={<ProtectedRoute><Certificates /></ProtectedRoute>} />
               <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} />
               <Route path="/profile"      element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 

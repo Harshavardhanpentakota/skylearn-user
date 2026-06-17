@@ -1,7 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { CourseCard } from "@/components/CourseCard";
-import { useCourses, useCertificates, useSuspiciousLoginCheck } from "@/hooks/use-courses";
-import { BookOpen, CheckCircle, Award, TrendingUp, ShieldAlert, X } from "lucide-react";
+import { useCourses, useSuspiciousLoginCheck } from "@/hooks/use-courses";
+import { BookOpen, CheckCircle, TrendingUp, ShieldAlert, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/context/AuthContext";
 import { useState } from "react";
@@ -9,7 +9,6 @@ import { useState } from "react";
 const Dashboard = () => {
   const { user, token } = useAuth();
   const { data: courses = [], isLoading } = useCourses(token);
-  const { data: certificates = [] } = useCertificates(token);
   const { data: suspiciousData } = useSuspiciousLoginCheck(token);
   const [dismissedAlert, setDismissedAlert] = useState(false);
 
@@ -18,7 +17,6 @@ const Dashboard = () => {
   const stats = [
     { icon: BookOpen,     label: "My Courses",        value: String(courses.length || "—") },
     { icon: CheckCircle,  label: "Completed Lessons",  value: "14" },
-    { icon: Award,        label: "Certificates",       value: String(certificates.length) },
     { icon: TrendingUp,   label: "Learning Progress",  value: "42%" },
   ];
 

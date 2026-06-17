@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useCourses } from "@/hooks/use-courses";
 import { CourseCard } from "@/components/CourseCard";
-import { BookOpen, BarChart3, Award, GraduationCap, Moon, Sun } from "lucide-react";
+import { BookOpen, BarChart3, GraduationCap, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 import heroBg from "@/assets/hero-bg.jpg";
 
@@ -10,7 +10,6 @@ const features = [
   { icon: BookOpen, title: "Structured Learning", description: "Carefully organized modules and topics guide your learning path." },
   { icon: BarChart3, title: "Track Progress", description: "Visual indicators keep you informed of your advancement." },
   { icon: GraduationCap, title: "Interactive Lessons", description: "Engage with rich content designed for deep understanding." },
-  { icon: Award, title: "Certificates", description: "Earn credentials that validate your completed learning." },
 ];
 
 const Landing = () => {
