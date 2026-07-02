@@ -1,22 +1,59 @@
-﻿import { useSearchParams } from "react-router-dom";
+import { useState, FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { Eye, EyeOff, Loader2, Mail, Lock } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_URL as string;
 
 const Login = () => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [searchParams] = useSearchParams();
+  
   const oauthError = searchParams.get("error");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const errorMessage =
     oauthError === "oauth_failed"     ? "Google sign-in failed. Please try again." :
     oauthError === "invalid_token"    ? "Authentication error. Please try again." :
     oauthError === "account_blocked"  ? "Your account has been blocked by administrator." :
-    null;
+    error || null;
+
+  const handleEmailLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.error || "Login failed. Please verify credentials.");
+      }
+
+      const { token, user } = await response.json();
+      login(token, user);
+      navigate("/dashboard", { replace: true });
+    } catch (err: any) {
+      setError(err.message || "Invalid credentials");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-sm">
         {/* Card */}
-        <div className="rounded-2xl border border-border bg-card shadow-lg p-8 space-y-8">
+        <div className="rounded-2xl border border-border bg-card shadow-lg p-8 space-y-6">
           {/* Logo */}
           <div className="flex flex-col items-center text-center space-y-2">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md">
@@ -43,7 +80,7 @@ const Login = () => {
             <button
               type="button"
               onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
-              className="group relative flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-secondary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40 active:scale-[0.98]"
+              className="group relative flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-secondary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40 active:scale-[0.98]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" className="shrink-0">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -53,11 +90,68 @@ const Login = () => {
               </svg>
               <span>Continue with Google</span>
             </button>
-
-            <p className="text-center text-xs text-muted-foreground">
-              By signing in, you agree to our terms and privacy policy.
-            </p>
           </div>
+
+          {/* Divider */}
+          <div className="relative flex items-center justify-center">
+            <hr className="w-full border-border" />
+            <span className="absolute bg-card px-3 text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+              Or Sign In with Email
+            </span>
+          </div>
+
+          {/* Email Form */}
+          <form onSubmit={handleEmailLogin} className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="email"
+                  required
+                  placeholder="student@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background pl-9 pr-4 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/45"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type={showPwd ? "text" : "password"}
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-background pl-9 pr-10 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/45"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd(!showPwd)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+              <span>{loading ? "Signing in…" : "Sign In"}</span>
+            </button>
+          </form>
+
+          <p className="text-center text-[10px] text-muted-foreground">
+            Demo: <span className="font-mono">student@example.com</span> / <span className="font-mono font-semibold">Student123!</span>
+          </p>
         </div>
       </div>
     </div>
