@@ -34,9 +34,12 @@ function isTokenExpired(token: string): boolean {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => {
     const t = localStorage.getItem(TOKEN_KEY);
-    if (t && isTokenExpired(t)) {
+    const expiresAt = localStorage.getItem("sl_session_expires_at");
+    if (t && (isTokenExpired(t) || (expiresAt && Date.now() >= Number(expiresAt)))) {
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
+      localStorage.removeItem("sl_session_expires_at");
+      localStorage.removeItem("sl_face_captured");
       return null;
     }
     return t;
@@ -44,7 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [user, setUser] = useState<AuthUser | null>(() => {
     const t = localStorage.getItem(TOKEN_KEY);
-    if (t && isTokenExpired(t)) return null;
+    const expiresAt = localStorage.getItem("sl_session_expires_at");
+    if (t && (isTokenExpired(t) || (expiresAt && Date.now() >= Number(expiresAt)))) return null;
     try {
       const raw = localStorage.getItem(USER_KEY);
       return raw ? (JSON.parse(raw) as AuthUser) : null;
@@ -53,18 +57,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   });
 
-  // Periodically check token expiry (every 60 seconds)
+  // Periodically check token & session expiry (every 10 seconds for snappy updates)
   useEffect(() => {
     if (!token) return;
     const interval = setInterval(() => {
-      if (isTokenExpired(token)) {
+      const expiresAt = localStorage.getItem("sl_session_expires_at");
+      const isSessionExpired = expiresAt ? Date.now() >= Number(expiresAt) : false;
+
+      if (isTokenExpired(token) || isSessionExpired) {
         setToken(null);
         setUser(null);
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem("sl_session_expires_at");
+        localStorage.removeItem("sl_face_captured");
         window.location.href = "/login";
       }
-    }, 60_000);
+    }, 10_000);
     return () => clearInterval(interval);
   }, [token]);
 
@@ -73,6 +82,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(newUser);
     localStorage.setItem(TOKEN_KEY, newToken);
     localStorage.setItem(USER_KEY, JSON.stringify(newUser));
+    localStorage.setItem("sl_session_expires_at", String(Date.now() + 4 * 60 * 60 * 1000));
+    localStorage.setItem("sl_face_captured", "false");
   };
 
   const logout = () => {
@@ -80,6 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem("sl_session_expires_at");
+    localStorage.removeItem("sl_face_captured");
   };
 
   return (
